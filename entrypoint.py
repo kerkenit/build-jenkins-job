@@ -20,11 +20,20 @@ JENKINS_TOKEN = mandatory_arg(sys.argv[2])
 JENKINS_USER = mandatory_arg(sys.argv[3])
 JOB_PATH = mandatory_arg(sys.argv[4])
 
+# define url to request build_number
+if len(JENKINS_URL.split("://")) > 1:
+    protocol = JENKINS_URL.split("://")[0]
+    JENKINS_URL = JENKINS_URL.split("://")[1]
+else:
+    protocol = "https"
+
+print(protocol, JENKINS_URL)
+
 # not mandatory
 JOB_PARAMS = sys.argv[5] or '{}'
 
 # create/connect jenkins server
-server = jenkins.Jenkins(f"{JENKINS_URL}", username=JENKINS_USER, password=JENKINS_TOKEN)
+server = jenkins.Jenkins(f"{protocol}://{JENKINS_URL}", username=JENKINS_USER, password=JENKINS_TOKEN)
 user = server.get_whoami()
 version = server.get_version()
 print(f"Hello {user['fullName']} from Jenkins {version}")
@@ -36,13 +45,6 @@ server.build_job(job_name, parameters=json.loads(JOB_PARAMS), token=JENKINS_TOKE
 queue_info = server.get_queue_info()
 queue_id = queue_info[0].get('id')
 
-# define url to request build_number
-if len(JENKINS_URL.split("://")) > 1:
-    protocol = JENKINS_URL.split("://")[0]
-    JENKINS_URL = JENKINS_URL.split("://")[1]
-else:
-    protocol = https
-print(protocol, JENKINS_URL)
 url = f"{protocol}://{JENKINS_USER}:{JENKINS_TOKEN}@{JENKINS_URL}/queue/item/{queue_id}/api/json?pretty=true"
 
 
